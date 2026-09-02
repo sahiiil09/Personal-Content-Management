@@ -1,0 +1,6 @@
+{
+  "name": "Personal Content Management",
+  "description": "A private personal dashboard, content management system, and public digital library with Firebase Authentication, Firestore, and Cloudinary Free storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

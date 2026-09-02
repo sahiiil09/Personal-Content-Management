@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: Check if the user is the authorized administrator
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.uid == "ZZgG3hnhSyZYWdQG3xt0MPaCaqZ2" ||
+        request.auth.token.email == "sayyedsahil9017@gmail.com" ||
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Files metadata collection:
+    // Public users can read published files only.
+    // Admin has full create, read, update, delete permissions.
+    match /files/{fileId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Main content collection (files, notes, code snippets, links):
+    // Public users can read published content only.
+    // Admin has full create, read, update, delete permissions.
+    match /content/{contentId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Categories: Public can read, admin can modify
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Social links: Public can read published links, admin can modify
+    match /socialLinks/{linkId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Specialized notes & source code collections:
+    match /notes/{noteId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /sourceCodes/{codeId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // User settings & Admin accounts: Strictly admin only
+    match /settings/{settingId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
