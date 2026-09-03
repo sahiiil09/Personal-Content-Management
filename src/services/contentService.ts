@@ -282,25 +282,29 @@ class ContentService {
 
     // 3. Build comprehensive metadata record
     const fileMetadata: FileMetadata = {
-      title: metadata.title || file.name,
-      originalFilename: file.name,
-      fileName: sanitizedName,
-      cloudinaryPublicId: cloudinaryResult.public_id,
-      cloudinarySecureUrl: cloudinaryResult.secure_url,
-      downloadUrl: cloudinaryResult.secure_url,
-      resourceType: cloudinaryResult.resource_type || 'auto',
-      format,
-      fileSize: file.size,
-      mimeType: file.type || 'application/octet-stream',
-      category: metadata.category || 'resources',
-      description: metadata.description || `Uploaded ${file.name} (${formatBytes(file.size)}) via Cloudinary Free`,
-      uploadedBy,
-      uploadedAt,
-      published: metadata.published,
-      allowDownload: metadata.allowDownload,
-      textPreviewContent,
-    };
+  title: metadata.title || file.name,
+  originalFilename: file.name,
+  fileName: sanitizedName,
+  cloudinaryPublicId: cloudinaryResult.public_id,
+  cloudinarySecureUrl: cloudinaryResult.secure_url,
+  downloadUrl: cloudinaryResult.secure_url,
+  resourceType: cloudinaryResult.resource_type || 'auto',
+  format,
+  fileSize: file.size,
+  mimeType: file.type || 'application/octet-stream',
+  category: metadata.category || 'resources',
+  description:
+    metadata.description ||
+    `Uploaded ${file.name} (${formatBytes(file.size)}) via Cloudinary Free`,
+  uploadedBy,
+  uploadedAt,
+  published: metadata.published,
+  allowDownload: metadata.allowDownload,
 
+  ...(textPreviewContent !== undefined
+    ? { textPreviewContent }
+    : {}),
+};
     // 4. Save metadata in Firestore ('files' & 'content' collections)
     const newContentItem = await this.addContent({
       title: metadata.title || file.name,
