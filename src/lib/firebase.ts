@@ -1,19 +1,23 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import {
+  initializeApp,
+  getApps,
+  getApp,
+  type FirebaseApp,
+} from 'firebase/app';
 
 import {
   getAuth,
-  Auth,
+  type Auth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   signOut as fbSignOut,
-  User
 } from 'firebase/auth';
 
 import {
   getFirestore,
-  Firestore,
+  type Firestore,
   collection,
   doc,
   getDocs,
@@ -24,87 +28,53 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot
+  onSnapshot,
 } from 'firebase/firestore';
 
-import { FirebaseConfig } from '../types';
+import type { FirebaseConfig } from '../types';
 
-export const AUTHORIZED_ADMIN_UID = 'ZZgG3hnhSyZYWdQG3xt0MPaCaqZ2';
+
+// ========================================
+// ADMIN SETTINGS
+// ========================================
+
+export const AUTHORIZED_ADMIN_UID =
+  'ZZgG3hnhSyZYWdQG3xt0MPaCaqZ2';
 
 export const ADMIN_EMAIL =
-  ((import.meta as any).env?.VITE_ADMIN_EMAIL) ||
   'sayyedsahil9017@gmail.com';
 
 
-// ================================
-// GET FIREBASE CONFIG
-// ================================
+// ========================================
+// FIREBASE CONFIG
+// ========================================
 
-const getStoredConfig = (): Partial<FirebaseConfig> => {
-  try {
-    const customConfig = localStorage.getItem(
-      'pcm_custom_firebase_config'
-    );
+const firebaseConfig = {
+  apiKey: 'AIzaSyCIVbVFkHMB6LhTvG6dXhcVfKBN2_Hvmn0',
 
-    if (customConfig) {
-      return JSON.parse(customConfig);
-    }
-  } catch (error) {
-    console.warn(
-      'Could not parse stored Firebase config',
-      error
-    );
-  }
+  authDomain:
+    'my-personal-dashboard-9fad0.firebaseapp.com',
 
-  const env = (import.meta as any).env || {};
+  projectId:
+    'my-personal-dashboard-9fad0',
 
-  return {
-    apiKey: env.VITE_FIREBASE_API_KEY || '',
-    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || '',
-    projectId: env.VITE_FIREBASE_PROJECT_ID || '',
-    messagingSenderId:
-      env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-    appId: env.VITE_FIREBASE_APP_ID || '',
-  };
+  storageBucket:
+    'my-personal-dashboard-9fad0.firebasestorage.app',
+
+  messagingSenderId:
+    '23284352702',
+
+  appId:
+    '1:23284352702:web:4f16293be812e1e8eb00ef',
+
+  measurementId:
+    'G-1NNDRLFG1R',
 };
 
 
-// ================================
-// CURRENT CONFIG
-// ================================
-
-let currentConfig: Partial<FirebaseConfig> =
-  getStoredConfig();
-
-
-// ================================
-// CHECK FIREBASE CONFIGURATION
-// ================================
-
-export const isFirebaseConfigured = (): boolean => {
-  return Boolean(
-    currentConfig.apiKey &&
-    currentConfig.authDomain &&
-    currentConfig.projectId &&
-    currentConfig.messagingSenderId &&
-    currentConfig.appId
-  );
-};
-
-
-// Debug check
-
-console.log('Firebase Config Check:', {
-  projectId: currentConfig.projectId,
-  hasApiKey: !!currentConfig.apiKey,
-  authDomain: currentConfig.authDomain,
-  configured: isFirebaseConfigured(),
-});
-
-
-// ================================
-// FIREBASE VARIABLES
-// ================================
+// ========================================
+// FIREBASE INSTANCES
+// ========================================
 
 let app: FirebaseApp | null = null;
 
@@ -113,42 +83,41 @@ let auth: Auth | null = null;
 let db: Firestore | null = null;
 
 
-// ================================
+// ========================================
+// CHECK FIREBASE CONFIG
+// ========================================
+
+export const isFirebaseConfigured = (): boolean => {
+  return Boolean(
+    firebaseConfig.apiKey &&
+    firebaseConfig.projectId &&
+    firebaseConfig.authDomain
+  );
+};
+
+
+// ========================================
 // INITIALIZE FIREBASE
-// ================================
+// ========================================
 
-export const initFirebase = () => {
-
-  if (!isFirebaseConfigured()) {
-
-    console.warn(
-      'Firebase is NOT configured. Check your .env file.'
-    );
-
-    return;
-  }
-
+export const initFirebase = (): void => {
   try {
 
-    if (!getApps().length) {
+    if (!app) {
 
-      app = initializeApp(
-        currentConfig as FirebaseConfig
-      );
+      if (getApps().length === 0) {
+        app = initializeApp(firebaseConfig);
+      } else {
+        app = getApp();
+      }
 
-    } else {
-
-      app = getApp();
-
+      auth = getAuth(app);
+      db = getFirestore(app);
     }
-
-    auth = getAuth(app);
-
-    db = getFirestore(app);
 
     console.log(
       'Firebase Auth & Firestore initialized successfully:',
-      currentConfig.projectId
+      firebaseConfig.projectId
     );
 
   } catch (error) {
@@ -159,26 +128,22 @@ export const initFirebase = () => {
     );
 
     app = null;
-
     auth = null;
-
     db = null;
-
   }
-
 };
 
 
-// ================================
+// ========================================
 // AUTO INITIALIZE
-// ================================
+// ========================================
 
 initFirebase();
 
 
-// ================================
+// ========================================
 // EXPORT FIREBASE SERVICES
-// ================================
+// ========================================
 
 export {
   app,
@@ -188,7 +153,6 @@ export {
   GoogleAuthProvider,
 
   signInWithEmailAndPassword,
-
   signInWithPopup,
 
   fbSignOut,
@@ -196,67 +160,61 @@ export {
   onAuthStateChanged,
 
   collection,
-
   doc,
 
   getDocs,
-
   getDoc,
 
   setDoc,
-
   updateDoc,
-
   deleteDoc,
 
   query,
-
   where,
-
   orderBy,
 
-  onSnapshot
+  onSnapshot,
 };
 
 
-// ================================
-// CUSTOM CONFIG FUNCTIONS
-// ================================
-
-export const saveCustomFirebaseConfig = (
-  config: FirebaseConfig
-) => {
-
-  localStorage.setItem(
-    'pcm_custom_firebase_config',
-    JSON.stringify(config)
-  );
-
-  currentConfig = config;
-
-  initFirebase();
-
-};
-
-
-export const clearCustomFirebaseConfig = () => {
-
-  localStorage.removeItem(
-    'pcm_custom_firebase_config'
-  );
-
-  currentConfig = getStoredConfig();
-
-  initFirebase();
-
-};
-
+// ========================================
+// COMPATIBILITY FUNCTIONS
+// ========================================
 
 export const getActiveFirebaseConfig =
   (): Partial<FirebaseConfig> => {
 
     return {
-      ...currentConfig
+      apiKey: firebaseConfig.apiKey,
+      authDomain: firebaseConfig.authDomain,
+      projectId: firebaseConfig.projectId,
+      messagingSenderId:
+        firebaseConfig.messagingSenderId,
+      appId: firebaseConfig.appId,
     };
+  };
 
+
+// This is kept only so existing code
+// does not break.
+
+export const saveCustomFirebaseConfig = (
+  _config: FirebaseConfig
+): void => {
+
+  console.warn(
+    'Custom Firebase config is disabled. Using the configured Firebase project.'
+  );
+};
+
+
+// This is kept only so existing code
+// does not break.
+
+export const clearCustomFirebaseConfig =
+  (): void => {
+
+    console.warn(
+      'Firebase config cannot be cleared.'
+    );
   };
